@@ -40,6 +40,7 @@ func getLogList(client *cloudwatchlogs.Client) []string {
 	logList = parseLogGroupArns(logList)
 
 	filteredList := getFilteredLogListConcurrently(logList, client)
+	filteredList = findAllLogAnomalyDetectors(filteredList, client)
 
 	return filteredList
 }
@@ -186,6 +187,53 @@ func getFilteredLogListConcurrently(logList []string, client *cloudwatchlogs.Cli
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+
+	return filteredList
+}
+
+func findAllLogAnomalyDetectors(logList []string, client *cloudwatchlogs.Client) []string {
+	var nextToken *string
+	var filteredList []string
+
+	// Create a map to store log groups with anomaly detectors for faster lookups
+	anomalyLogGroups := make(map[string]bool)
+
+	fmt.Println("Finding logs with Anomaly Detectors")
+	for {
+		// Make the ListLogAnomalyDetectors API call
+		input := &cloudwatchlogs.ListLogAnomalyDetectorsInput{
+			NextToken: nextToken, // For pagination
+		}
+
+		resp, err := client.ListLogAnomalyDetectors(context.TODO(), input)
+		if err != nil {
+			log.Fatalf("Failed to list anomaly detectors: %v", err)
+		}
+
+		// Process the results and add log group names to the anomalyLogGroups map
+		for _, detector := range resp.AnomalyDetectors {
+			// Loop through the list of log group ARNs that the detector watches
+			fmt.Printf("Anomaly Detectors Found: %d \n", len(detector.LogGroupArnList))
+			for _, logGroupArn := range detector.LogGroupArnList {
+				logGroupName := parseLogGroupArn(aws.String(logGroupArn))
+				anomalyLogGroups[logGroupName] = true
+			}
+		}
+
+		// Check if there's a NextToken for pagination
+		if resp.NextToken == nil {
+			break // No more pages, so exit the loop
+		}
+
+		// Set the nextToken for the next request
+		nextToken = resp.NextToken
+	}
+
+	for _, logGroup := range logList {
+		if !anomalyLogGroups[logGroup] {
+			filteredList = append(filteredList, logGroup)
+		}
+	}
 
 	return filteredList
 }
