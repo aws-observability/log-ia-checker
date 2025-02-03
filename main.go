@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 )
@@ -21,9 +22,13 @@ func main() {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 	log_client := cloudwatchlogs.NewFromConfig(cfg)
+	cloudtrail_client := cloudtrail.NewFromConfig(cfg)
 
 	//get list of log groups
 	logList := getLogList(log_client)
+
+	//removeliveTailEvents TODO: do more stuff in cTrail
+	logList = removeLiveTail(logList, cloudtrail_client)
 
 	fmt.Println("Length of Log group list who can be IA:")
 	fmt.Println(len(logList))
