@@ -23,8 +23,8 @@ therefore that is considered out of scope. Using this tool though we can get a l
 ## Setup
 1. Clone the repo
 ```
-git clone https://github.com/yourusername/cloudwatch-log-filter.git
-cd cloudwatch-log-filter
+git clone https://github.com/lewinkedrs/cwlogs-ia-checker.git
+cd cwlogs-ia-checker
 ```
 
 2. Install Go Packages
