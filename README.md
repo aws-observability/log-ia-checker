@@ -7,11 +7,6 @@ CloudWatch logs has a log class called [Infrequent Access](https://docs.aws.amaz
 of a standard log group. Using this command line utility, we can check all logs in a region to see if they would be good candidates for transition to IA. At this time it is not possible to programmtically convert a log group from standard to IA
 therefore that is considered out of scope. Using this tool though we can get a list of candidates to review further to see if they can be recreated as IA log groups.
 
-## Features
-- Retrieves all CloudWatch log groups.
-- Filters log groups based on certain events such as LiveTail and export events.
-- Outputs a final list of log groups that meet certain [criteria](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html) and can be transitioned to IA.
-
 ## Prerequisites
 
 ### 1. Go (Golang)
