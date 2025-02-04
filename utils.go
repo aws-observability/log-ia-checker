@@ -2,6 +2,8 @@
 package main
 
 import (
+	"bufio"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -31,4 +33,32 @@ func parseLogGroupArn(logGroupArn *string) string {
 		return arnParts[1]
 	}
 	return ""
+}
+
+func writeToFile(fileName string, lines []string) error {
+	// Open the file for writing (create if it doesn't exist)
+	file, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Create a buffered writer
+	writer := bufio.NewWriter(file)
+
+	// Write each line to the file
+	for _, line := range lines {
+		_, err := writer.WriteString(line + "\n")
+		if err != nil {
+			return err
+		}
+	}
+
+	// Flush the buffered writer to ensure all data is written
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

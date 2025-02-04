@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -14,9 +13,10 @@ import (
 func main() {
 	//Get region from os arg
 	if len(os.Args) < 2 {
-		log.Fatal("Error: Missing Region Argument")
+		log.Fatal("Error: Missing Region or Output File Argument Usage: log-ia-review region outfile")
 	}
 	region := os.Args[1]
+	outfile := os.Args[2]
 
 	//Built a log and trail client
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
@@ -27,14 +27,22 @@ func main() {
 	cloudtrail_client := cloudtrail.NewFromConfig(cfg)
 
 	//get list of log groups and perform some initial checks on the describe output
+	log.Println("Retrieving list of log groups and performing initial checks.")
 	logList := getLogList(log_client)
 
 	//removeliveTailEvents TODO: do more stuff in cTrail
+	log.Println("Checking for and removing logs with LiveTail events")
 	logList = removeLiveTail(logList, cloudtrail_client)
 
 	//remove export events TODO: try to make this more modular
+	log.Println("Checking for and removing logs with export events")
 	logList = removeExport(logList, cloudtrail_client)
 
-	fmt.Println("Length of Log group list who can be IA:")
-	fmt.Println(len(logList))
+	log.Printf("Logs that should be considered for transition to IA: %d \n", len(logList))
+	log.Printf("Writing list to: %s", outfile)
+
+	err = writeToFile(outfile, logList)
+	if err != nil {
+		log.Printf("error writing to outfile: %s", err)
+	}
 }

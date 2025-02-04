@@ -29,7 +29,6 @@ func getLogList(client *cloudwatchlogs.Client) []string {
 			log.Printf("error: %v", err)
 		}
 		for _, value := range output.LogGroups {
-			fmt.Printf("Checking log group: %s \n", *value.LogGroupArn)
 			if !checkLogGroup(value) {
 				logList = append(logList, *value.LogGroupArn)
 			}
@@ -37,10 +36,14 @@ func getLogList(client *cloudwatchlogs.Client) []string {
 		pageNum++
 	}
 
+	log.Println("Checking for logs with index policies")
 	logList = getAllIndexPolicies(logList, client)
 	logList = parseLogGroupArns(logList)
 
+	log.Println("Checking for logs with subscription filters")
 	filteredList := getFilteredLogListConcurrently(logList, client)
+
+	log.Println("Checking for logs with anomaly detectors")
 	filteredList = findAllLogAnomalyDetectors(filteredList, client)
 
 	return filteredList
@@ -178,7 +181,6 @@ func getFilteredLogListConcurrently(logList []string, client *cloudwatchlogs.Cli
 			defer func() { <-sem }() // Release the semaphore slot
 			defer time.Sleep(delay)  // Add delay to slow down the API calls
 
-			fmt.Printf("Checking log group for subscription filters: %s \n", logGroupName)
 			resp, err := client.DescribeSubscriptionFilters(context.TODO(), &cloudwatchlogs.DescribeSubscriptionFiltersInput{
 				LogGroupName: aws.String(logGroupName),
 			})
@@ -199,6 +201,7 @@ func getFilteredLogListConcurrently(logList []string, client *cloudwatchlogs.Cli
 	// Wait for all goroutines to finish
 	wg.Wait()
 
+	log.Printf("Logs still in consideration: %d", len(filteredList))
 	return filteredList
 }
 
@@ -209,7 +212,6 @@ func findAllLogAnomalyDetectors(logList []string, client *cloudwatchlogs.Client)
 	// Create a map to store log groups with anomaly detectors for faster lookups
 	anomalyLogGroups := make(map[string]bool)
 
-	fmt.Println("Finding logs with Anomaly Detectors")
 	for {
 		// Make the ListLogAnomalyDetectors API call
 		input := &cloudwatchlogs.ListLogAnomalyDetectorsInput{
@@ -224,7 +226,6 @@ func findAllLogAnomalyDetectors(logList []string, client *cloudwatchlogs.Client)
 		// Process the results and add log group names to the anomalyLogGroups map
 		for _, detector := range resp.AnomalyDetectors {
 			// Loop through the list of log group ARNs that the detector watches
-			fmt.Printf("Anomaly Detectors Found: %d \n", len(detector.LogGroupArnList))
 			for _, logGroupArn := range detector.LogGroupArnList {
 				logGroupName := parseLogGroupArn(aws.String(logGroupArn))
 				anomalyLogGroups[logGroupName] = true
@@ -246,5 +247,6 @@ func findAllLogAnomalyDetectors(logList []string, client *cloudwatchlogs.Client)
 		}
 	}
 
+	log.Printf("Logs Still in consideration: %d", len(filteredList))
 	return filteredList
 }

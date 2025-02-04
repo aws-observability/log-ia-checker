@@ -4,7 +4,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
@@ -17,7 +16,6 @@ import (
 func removeLiveTail(logList []string, client *cloudtrail.Client) []string {
 	endTime := time.Now()
 	startTime := time.Now().AddDate(0, 0, -30)
-	fmt.Println("Checking log groups for recent LiveTail activities")
 
 	// Create a paginator for LookupEvents
 	paginator := cloudtrail.NewLookupEventsPaginator(client, &cloudtrail.LookupEventsInput{
@@ -58,7 +56,6 @@ func removeLiveTail(logList []string, client *cloudtrail.Client) []string {
 					for _, lg := range logGroups {
 						if logGroupArn, ok := lg.(string); ok {
 							liveTailList = append(liveTailList, logGroupArn)
-							fmt.Printf("Appending %s to liveTail List \n", logGroupArn)
 						}
 					}
 				}
@@ -81,6 +78,7 @@ func removeLiveTail(logList []string, client *cloudtrail.Client) []string {
 		}
 	}
 
+	log.Printf("Logs Still in consideration: %d", len(filteredLogList))
 	return filteredLogList
 }
 
@@ -89,7 +87,6 @@ func removeLiveTail(logList []string, client *cloudtrail.Client) []string {
 func removeExport(logList []string, client *cloudtrail.Client) []string {
 	endTime := time.Now()
 	startTime := time.Now().AddDate(0, 0, -30)
-	fmt.Println("Checking log groups for recent S3 Export activities")
 
 	// Create a paginator for LookupEvents
 	paginator := cloudtrail.NewLookupEventsPaginator(client, &cloudtrail.LookupEventsInput{
@@ -128,7 +125,6 @@ func removeExport(logList []string, client *cloudtrail.Client) []string {
 			if requestParams, ok := eventDetails["requestParameters"].(map[string]interface{}); ok {
 				if logGroup, ok := requestParams["logGroupName"].(string); ok {
 					s3ExportList = append(s3ExportList, logGroup)
-					fmt.Printf("Appending %s to S3 Export List \n", logGroup)
 				}
 			}
 		}
@@ -147,5 +143,6 @@ func removeExport(logList []string, client *cloudtrail.Client) []string {
 		}
 	}
 
+	log.Printf("Logs Still in consideration: %d", len(filteredLogList))
 	return filteredLogList
 }
