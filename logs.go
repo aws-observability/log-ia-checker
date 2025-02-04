@@ -165,43 +165,52 @@ func fetchIndexPoliciesForBatch(batch []string, client *cloudwatchlogs.Client) [
 // Subscription filter check
 func getFilteredLogListConcurrently(logList []string, client *cloudwatchlogs.Client) []string {
 	var filteredList []string
-	var mu sync.Mutex               // To safely append to the shared slice
-	var wg sync.WaitGroup           // To wait for all goroutines to complete
-	concurrency := 3                // Number of concurrent requests (adjust as needed)
-	delay := 500 * time.Millisecond // Delay between requests (tunable)
+	var mu sync.Mutex     // To safely append to the shared slice
+	var wg sync.WaitGroup // To wait for all goroutines to complete
+	concurrency := 2      // Number of concurrent requests (adjust as needed)
 
-	sem := make(chan struct{}, concurrency) // Semaphore to limit concurrent requests
+	// Create a semaphore to limit concurrent requests
+	sem := make(chan struct{}, concurrency)
 
-	for _, logGroupName := range logList {
+	totalLogs := len(logList)
+
+	// Track progress
+	for i, logGroupName := range logList {
 		wg.Add(1)
 		sem <- struct{}{} // Acquire a semaphore slot
 
-		go func(logGroupName string) {
+		go func(logGroupName string, index int) {
 			defer wg.Done()
 			defer func() { <-sem }() // Release the semaphore slot
-			defer time.Sleep(delay)  // Add delay to slow down the API calls
 
+			// Delay for backoff
+			time.Sleep(200 * time.Millisecond)
+
+			// Here you would make the actual DescribeSubscriptionFilters API call
+			// Example:
 			resp, err := client.DescribeSubscriptionFilters(context.TODO(), &cloudwatchlogs.DescribeSubscriptionFiltersInput{
-				LogGroupName: aws.String(logGroupName),
+				LogGroupName: &logGroupName,
 			})
 			if err != nil {
-				log.Printf("Error describing subscription filters for %s: %v", logGroupName, err)
+				fmt.Printf("Error describing subscription filters for %s: %v\n", logGroupName, err)
 				return
 			}
 
 			// If no subscription filters are found, add to filtered list
 			if len(resp.SubscriptionFilters) == 0 {
-				mu.Lock() // Lock the mutex before modifying the shared slice
+				mu.Lock()
 				filteredList = append(filteredList, logGroupName)
-				mu.Unlock() // Unlock the mutex
+				mu.Unlock()
 			}
-		}(logGroupName)
+
+			// Update progress bar after each log group is processed
+			progressBar(index+1, totalLogs, "Finding Subscription Filters")
+		}(logGroupName, i)
 	}
 
 	// Wait for all goroutines to finish
 	wg.Wait()
 
-	log.Printf("Logs still in consideration: %d", len(filteredList))
 	return filteredList
 }
 

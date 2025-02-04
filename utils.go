@@ -3,6 +3,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 
@@ -61,4 +62,33 @@ func writeToFile(fileName string, lines []string) error {
 	}
 
 	return nil
+}
+
+// Simple progress bar function
+func progressBar(current, total int, task string) {
+	// Calculate the percentage
+	percentage := float64(current) / float64(total) * 100
+
+	// The length of the progress bar
+	barLength := 50
+	progress := int(float64(barLength) * percentage / 100.0)
+
+	// Print the progress bar
+	fmt.Printf("\r[%s%s] %.2f%% (%d/%d) %s",
+		string(replicate('=', progress)),
+		string(replicate(' ', barLength-progress)),
+		percentage, current, total, task)
+
+	if current == total {
+		fmt.Println() // Print newline at the end when completed
+	}
+}
+
+// Helper function to replicate characters in progress bar
+func replicate(char rune, count int) []rune {
+	result := make([]rune, count)
+	for i := 0; i < count; i++ {
+		result[i] = char
+	}
+	return result
 }
