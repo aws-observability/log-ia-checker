@@ -25,6 +25,9 @@ func main() {
 	//removeliveTailEvents TODO: do more stuff in cTrail
 	logList = removeLiveTail(logList, cloudtrail_client)
 
+	//remove export events TODO: try to make this more modular
+	logList = removeExport(logList, cloudtrail_client)
+
 	fmt.Println("Length of Log group list who can be IA:")
 	fmt.Println(len(logList))
 }
