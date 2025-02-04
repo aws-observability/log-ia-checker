@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -51,6 +52,7 @@ func checkLogGroup(logGroup types.LogGroup) bool {
 		hasMetricFilter,
 		hasDataProtectionPolicy,
 		isIA,
+		hasInsights,
 		// Add more conditions here as needed
 	}
 
@@ -75,15 +77,24 @@ func isIA(logGroup types.LogGroup) bool {
 	return false
 }
 
+// check for metric filters
 func hasMetricFilter(logGroup types.LogGroup) bool {
 	return aws.ToInt32(logGroup.MetricFilterCount) > 0
 }
 
+// check for data protection policy
 func hasDataProtectionPolicy(logGroup types.LogGroup) bool {
 	if logGroup.DataProtectionStatus == types.DataProtectionStatusActivated {
 		return true
 	}
 	return false
+}
+
+// check if insights
+func hasInsights(logGroup types.LogGroup) bool {
+	logGroupName := aws.ToString(logGroup.LogGroupName) // Convert to string
+	// Check if the log group name contains "lambda-insights" or "containerinsights"
+	return strings.Contains(logGroupName, "lambda-insights") || strings.Contains(logGroupName, "containerinsights")
 }
 
 // Index Policy Checks
