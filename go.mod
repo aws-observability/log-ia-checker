@@ -1,4 +1,4 @@
-module log-review
+module log-ia-checker
 
 go 1.22.4
 
