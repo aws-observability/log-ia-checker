@@ -1,4 +1,4 @@
-# CloudWatch Log Group Infrequent Access Check
+# Infrequent Access Check for CloudWatch Log Group
 
 This project retrieves and filters CloudWatch log groups based on a list of conditions. It outputs a list of log groups that are good candidates for transitionsto Infrequent Access (IA).
 
@@ -23,8 +23,8 @@ therefore that is considered out of scope. Using this tool though we can get a l
 ## Setup
 1. Clone the repo
 ```
-git clone https://github.com/lewinkedrs/cwlogs-ia-checker.git
-cd cwlogs-ia-checker
+git clone https://github.com/aws-observability/log-ia-checker.git
+cd log-ia-checker
 ```
 
 2. Install Go Packages
