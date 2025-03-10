@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"time"
@@ -12,12 +13,33 @@ import (
 )
 
 func main() {
-	// Get region and output file from os args
-	if len(os.Args) < 3 {
-		log.Fatal("Error: Missing Region or Output File Argument Usage: log-ia-review region outfile")
+	// Define flags
+	outfilePtr := flag.String("outfile", "ia.txt", "Output file path (default: ia.txt)")
+	
+	// Custom usage message
+	flag.Usage = func() {
+		log.Printf("Usage: %s [OPTIONS] [REGION]\n", os.Args[0])
+		log.Println("  REGION: AWS region (optional if AWS_REGION environment variable is set)")
+		log.Println("Options:")
+		flag.PrintDefaults()
 	}
-	region := os.Args[1]
-	outfile := os.Args[2]
+	
+	// Parse flags
+	flag.Parse()
+	
+	// Get region from remaining args or environment variable
+	var region string
+	if flag.NArg() > 0 {
+		region = flag.Arg(0)
+	} else {
+		region = os.Getenv("AWS_REGION")
+		if region == "" {
+			log.Fatal("Error: No region provided and AWS_REGION environment variable not set")
+		}
+	}
+	
+	// Use the outfile from flag
+	outfile := *outfilePtr
 
 	// Build a log and trail client
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
