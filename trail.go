@@ -12,8 +12,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 )
 
+// CloudTrailClient is an interface for CloudTrail operations
+type CloudTrailClient interface {
+	LookupEvents(ctx context.Context, params *cloudtrail.LookupEventsInput, optFns ...func(*cloudtrail.Options)) (*cloudtrail.LookupEventsOutput, error)
+}
+
 // Remove log groups that have had a LiveTail call against them.
-func removeLiveTail(logList []string, client *cloudtrail.Client) []string {
+func removeLiveTail(logList []string, client CloudTrailClient) []string {
 	endTime := time.Now()
 	startTime := time.Now().AddDate(0, 0, -30)
 
@@ -84,7 +89,7 @@ func removeLiveTail(logList []string, client *cloudtrail.Client) []string {
 
 // Remove Log Groups with export task
 // Remove log groups that have had a LiveTail call against them.
-func removeExport(logList []string, client *cloudtrail.Client) []string {
+func removeExport(logList []string, client CloudTrailClient) []string {
 	endTime := time.Now()
 	startTime := time.Now().AddDate(0, 0, -30)
 
