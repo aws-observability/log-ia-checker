@@ -14,8 +14,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 )
 
+// CloudWatchLogsClient is an interface for CloudWatch Logs operations
+type CloudWatchLogsClient interface {
+	DescribeLogGroups(ctx context.Context, params *cloudwatchlogs.DescribeLogGroupsInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeLogGroupsOutput, error)
+	DescribeFieldIndexes(ctx context.Context, params *cloudwatchlogs.DescribeFieldIndexesInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeFieldIndexesOutput, error)
+	DescribeSubscriptionFilters(ctx context.Context, params *cloudwatchlogs.DescribeSubscriptionFiltersInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeSubscriptionFiltersOutput, error)
+	ListLogAnomalyDetectors(ctx context.Context, params *cloudwatchlogs.ListLogAnomalyDetectorsInput, optFns ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.ListLogAnomalyDetectorsOutput, error)
+}
+
 // Return a list of logs who can be IA because they are not utilizing any standard features.
-func getLogList(client *cloudwatchlogs.Client) []string {
+func getLogList(client CloudWatchLogsClient) []string {
 	//Create empty list to store log group names
 	var logList []string
 
@@ -101,7 +109,7 @@ func hasInsights(logGroup types.LogGroup) bool {
 }
 
 // Index Policy Checks
-func getAllIndexPolicies(logList []string, client *cloudwatchlogs.Client) []string {
+func getAllIndexPolicies(logList []string, client CloudWatchLogsClient) []string {
 	const batchSize = 100
 	var filteredLogList []string
 
@@ -121,7 +129,7 @@ func getAllIndexPolicies(logList []string, client *cloudwatchlogs.Client) []stri
 	return filteredLogList
 }
 
-func fetchIndexPoliciesForBatch(batch []string, client *cloudwatchlogs.Client) []string {
+func fetchIndexPoliciesForBatch(batch []string, client CloudWatchLogsClient) []string {
 	var nextToken *string
 	var remainingLogGroups []string
 
@@ -163,7 +171,7 @@ func fetchIndexPoliciesForBatch(batch []string, client *cloudwatchlogs.Client) [
 }
 
 // Subscription filter check
-func getFilteredLogListConcurrently(logList []string, client *cloudwatchlogs.Client) []string {
+func getFilteredLogListConcurrently(logList []string, client CloudWatchLogsClient) []string {
 	var filteredList []string
 	var mu sync.Mutex     // To safely append to the shared slice
 	var wg sync.WaitGroup // To wait for all goroutines to complete
@@ -214,7 +222,7 @@ func getFilteredLogListConcurrently(logList []string, client *cloudwatchlogs.Cli
 	return filteredList
 }
 
-func findAllLogAnomalyDetectors(logList []string, client *cloudwatchlogs.Client) []string {
+func findAllLogAnomalyDetectors(logList []string, client CloudWatchLogsClient) []string {
 	var nextToken *string
 	var filteredList []string
 

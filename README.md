@@ -62,7 +62,7 @@ go run . us-east-1
 ## Notes
 Currently, the utility only can check one region in one account at a time.
 
-At this time we check for the following criteria to exclude a log group from consdieration for IA:
+At this time we check for the following criteria to exclude a log group from consideration for IA:
 
 - Metric Filters
 - Subscription Filters
@@ -74,5 +74,10 @@ At this time we check for the following criteria to exclude a log group from con
 - LiveTail Events in the last 30 days
 - S3 export jobs in the last 30 days
 
+## Testing
+Run unit tests:
+```
+go test -v ./...
+```
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
