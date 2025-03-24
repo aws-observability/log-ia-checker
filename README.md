@@ -20,25 +20,48 @@ therefore that is considered out of scope. Using this tool though we can get a l
 - AWS credentials should be configured using the AWS [CLI](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-configure.html). The Go SDK uses these credentials to authenticate requests to AWS services (CloudWatch Logs and CloudTrail)
 - Ensure you have access to perform read operations on both CloudWatch Logs and CloudTrail.
 
-## Setup
-1. Clone the repo
+## Installation
+
+### Option 1: Install directly with Go (Recommended)
+You can install the tool directly using Go's install command:
+
+```bash
+go install github.com/aws-observability/log-ia-checker@latest
 ```
+
+This will download, compile, and install the binary to your Go bin directory. Make sure your Go bin directory is in your PATH.
+
+After installation, you can run the tool directly:
+
+```bash
+log-ia-checker OPTIONS REGION
+```
+
+### Option 2: Manual Setup
+If you prefer to clone the repository and build manually:
+
+1. Clone the repo
+```bash
 git clone https://github.com/aws-observability/log-ia-checker.git
 cd log-ia-checker
 ```
 
 2. Install Go Packages
-```
+```bash
 go mod tidy
 ```
 
 3. Run the Program
-```
+```bash
 go run . OPTIONS REGION
 ```
 
 For Example:
-```
+```bash
+# If installed via go install
+log-ia-checker -outfile ia.txt us-west-2
+
+# If running from cloned repository
 go run . -outfile ia.txt us-west-2
 ```
 
@@ -47,16 +70,18 @@ The program accepts the following parameters:
 - `output-file`: File to write results to (defaults to 'ia.txt' if not provided)
 
 Examples:
-```
-# Specify both region and output file
-go run . -outfile ia.txt us-west-2
+```bash
+# Using installed binary - specify both region and output file
+log-ia-checker -outfile ia.txt us-west-2
 
-# Use AWS_REGION environment variable and default output file
+# Using installed binary - use AWS_REGION environment variable and default output file
 export AWS_REGION=us-west-2
-go run .
+log-ia-checker
 
-# Specify region but use default output file
-go run . us-east-1
+# Using installed binary - specify region but use default output file
+log-ia-checker us-east-1
+
+# If running from cloned repository, replace 'log-ia-checker' with 'go run .' in the examples above
 ```
 
 ## Notes
