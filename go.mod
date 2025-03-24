@@ -1,4 +1,4 @@
-module log-ia-checker
+module github.com/aws-observability/log-ia-checker
 
 go 1.22.4
 
