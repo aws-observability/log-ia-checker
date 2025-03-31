@@ -1,11 +1,11 @@
 # Infrequent Access Check for CloudWatch Log Group
 
-This project retrieves and filters CloudWatch log groups based on a list of conditions. It outputs a list of log groups that are good candidates for transitionsto Infrequent Access (IA).
+This project retrieves and filters CloudWatch log groups based on a list of conditions. It outputs a list of log groups that are good candidates for re-creation as an Infrequent Access (IA) log group.
 
 ## Why?
 CloudWatch logs has a log class called [Infrequent Access](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html). This Log class is 50% cheaper on ingestion but it does not contain call the capabilities
 of a standard log group. Using this command line utility, we can check all logs in a region to see if they would be good candidates for transition to IA. At this time it is not possible to programmatically convert a log group from standard to IA
-therefore that is considered out of scope. Using this tool though we can get a list of candidates to review further to see if they can be recreated as IA log groups.
+therefore that is considered out of scope. Using this tool though we can get a list of candidates to review further to see if they can be re-created as IA log groups.
 
 ## Prerequisites
 
@@ -93,7 +93,7 @@ At this time we check for the following criteria to exclude a log group from con
 - Subscription Filters
 - Anomaly Detectors
 - Used for lambda or container insights
-- Is already standard
+- Is already IA
 - Field Indexes
 - Data Protection Policies
 - LiveTail Events in the last 30 days
